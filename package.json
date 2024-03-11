@@ -30,6 +30,6 @@
     "prettier": "^3.2.4"
   },
   "lint-staged": {
-    "*.js": "eslint --cache --fix"
+    "*.js": "eslint --fix"
   }
 }
