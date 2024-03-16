@@ -1,16 +1,15 @@
 const mongoose = require("mongoose");
 
 const missionSchema = new mongoose.Schema({
-  test: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Test",
-    required: true,
-  },
   description: {
     type: String,
     required: true,
   },
   expectedDuration: {
+    type: Number,
+    required: true,
+  },
+  order: {
     type: Number,
     required: true,
   },
@@ -29,11 +28,9 @@ const missionSchema = new mongoose.Schema({
       },
       createdAt: {
         type: Date,
-        required: true,
       },
       completedAt: {
         type: Date,
-        required: true,
       },
       feedback: {
         type: String,
