@@ -50,3 +50,21 @@ exports.logout = async function (req, res, next) {
     next(error);
   }
 };
+
+exports.check = async function (req, res, next) {
+  if (!req.user) {
+    const error = new Error(errors.NOT_AUTHORIZED.message);
+    error.status = errors.NOT_AUTHORIZED.status;
+
+    next(error);
+  }
+
+  const user = await User.findById(req.user);
+
+  const userInfo = {
+    username: user.username,
+    userId: req.user,
+  };
+
+  res.status(200).json({ success: true, userInfo });
+};
