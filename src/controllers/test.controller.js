@@ -1,4 +1,6 @@
 /* eslint-disable consistent-return */
+const bcrypt = require("bcrypt");
+
 const User = require("../models/User");
 const Test = require("../models/Test");
 const Tester = require("../models/Tester");
@@ -17,6 +19,7 @@ exports.createTest = async function (req, res, next) {
     } = req.body;
 
     const userId = req.params.userid;
+    const saltRounds = parseInt(process.env.SALT_ROUNDS, 10);
 
     const newTest = await Test.create({
       owner: userId,
@@ -30,10 +33,15 @@ exports.createTest = async function (req, res, next) {
       const testerId = `${testName}_${String(index + 1).padStart(2, "0")}`;
       const testerPassword = `${Math.random().toString(36).substring(2, 8)}`;
 
+      const hashedTesterPassword = await bcrypt.hash(
+        testerPassword,
+        saltRounds,
+      );
+
       const newTester = await Tester.create({
         testerEmail: email,
         testerId,
-        testerPassword,
+        testerPassword: hashedTesterPassword,
       });
 
       const emailSubject = "테스트 정보입니다";
