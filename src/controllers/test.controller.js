@@ -133,11 +133,8 @@ exports.getTest = async function (req, res, next) {
 };
 
 exports.getUserMissionDetails = async function (req, res, next) {
-  // const { missionid, testerid } = req.params;
   const { missionIds, testerId } = req.query;
-  // const missionIds = req.query;
   const missionIdList = missionIds.split(",");
-  // console.log(missionIds, testerId);
 
   try {
     const missionDetails = await Promise.all(
