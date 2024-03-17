@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 
 const testerSchema = new mongoose.Schema({
+  testerEmail: {
+    type: String,
+    required: true,
+  },
   testerId: {
     type: String,
     required: true,
