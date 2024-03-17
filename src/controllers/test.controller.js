@@ -31,6 +31,7 @@ exports.createTest = async function (req, res, next) {
       const testerPassword = `${Math.random().toString(36).substring(2, 8)}`;
 
       const newTester = await Tester.create({
+        testerEmail: email,
         testerId,
         testerPassword,
       });
@@ -98,5 +99,89 @@ exports.getAllTests = async function (req, res, next) {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to get Tests" });
+  }
+};
+
+exports.getTest = async function (req, res, next) {
+  const testId = req.params.testid;
+
+  try {
+    const test = await Test.findById(testId).lean();
+
+    if (!test) {
+      return res.status(404).json({ error: "Test Not Found" });
+    }
+
+    const testers = await Tester.find({
+      _id: { $in: test.testers },
+    }).lean();
+
+    const testerData = testers.map((tester) => ({
+      testerEmail: tester.testerEmail,
+      testerId: tester._id,
+      testerVideo: tester.videoURL,
+    }));
+
+    const missions = await Mission.find({
+      _id: { $in: test.missions },
+    }).lean();
+
+    res.status(200).json({ test, testerData, missions });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to retrieve test" });
+  }
+};
+
+exports.getUserMissionDetails = async function (req, res, next) {
+  // const { missionid, testerid } = req.params;
+  const { missionIds, testerId } = req.query;
+  // const missionIds = req.query;
+  const missionIdList = missionIds.split(",");
+  // console.log(missionIds, testerId);
+
+  try {
+    const missionDetails = await Promise.all(
+      missionIdList.map(async (id) => {
+        const mission = await Mission.findById(id);
+
+        if (!mission) {
+          return res.status(404).json({ error: "Mission Not Found" });
+        }
+
+        const testerMissionDetail = mission.completedBy.find(
+          (detail) => detail.tester.toString() === testerId,
+        );
+
+        if (!testerMissionDetail) {
+          return res.status(404).json({ error: "Tester's Mission Not Found" });
+        }
+
+        if (testerMissionDetail.completed) {
+          return {
+            missionId: id,
+            description: mission.description,
+            complted: testerMissionDetail.completed,
+            duration: testerMissionDetail.duration,
+            createdAt: testerMissionDetail.createdAt,
+            completedAt: testerMissionDetail.completedAt,
+            feedback: testerMissionDetail.feedback,
+          };
+        }
+
+        return {
+          missionId: id,
+          description: mission.description,
+          completed: false,
+        };
+      }),
+    );
+
+    const filteredMissionDetails = missionDetails.filter(
+      (detail) => detail !== null,
+    );
+
+    res.status(200).json(filteredMissionDetails);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to retrieve user's mission" });
   }
 };
