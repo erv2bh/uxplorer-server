@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.post("/google", authController.google);
 router.post("/check", verifyToken, authController.check);
+router.post("/login", authController.login);
 router.post("/logout", authController.logout);
 
 module.exports = router;

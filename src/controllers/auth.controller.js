@@ -1,7 +1,11 @@
+/* eslint-disable consistent-return */
+const bcrypt = require("bcrypt");
+
 const User = require("../models/User");
 const jwt = require("../service/jwtUtils");
 const errors = require("../constants/error");
 const CONFIG = require("../constants/config");
+const Tester = require("../models/Tester");
 
 exports.google = async function (req, res, next) {
   let member;
@@ -35,6 +39,41 @@ exports.google = async function (req, res, next) {
     error.message = errors.NOT_AUTHORIZED.message;
     error.status = errors.INTERNAL_SERVER_ERROR.status;
 
+    next(error);
+  }
+};
+
+exports.login = async function (req, res, next) {
+  try {
+    const { testerId, testerPassword } = req.body;
+
+    const testerData = await Tester.findOne({
+      testerId,
+      isLoggedIn: false,
+    });
+
+    if (!testerData) {
+      return res.status(401).json({ message: "Authentication Failed" });
+    }
+
+    const passwordMatch = await bcrypt.compare(
+      testerPassword,
+      testerData.testerPassword,
+    );
+
+    if (!passwordMatch) {
+      return res.status(401).json({ message: "Password Not Matched" });
+    }
+
+    await Tester.findByIdAndUpdate(testerData._id, {
+      $set: { isLoggedIn: true },
+    });
+
+    res.json({
+      message: "Login Success",
+      testerObjectId: testerData._id,
+    });
+  } catch (error) {
     next(error);
   }
 };
