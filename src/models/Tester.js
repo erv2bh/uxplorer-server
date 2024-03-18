@@ -14,6 +14,11 @@ const testerSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  isLoggedIn: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
   missions: [
     {
       type: mongoose.Schema.Types.ObjectId,
