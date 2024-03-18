@@ -6,4 +6,6 @@ const router = express.Router();
 
 router.get("/:testerid/testurls", testerController.getTestUrl);
 
+router.get("/:testerid/missions", testerController.getAllMissions);
+
 module.exports = router;
