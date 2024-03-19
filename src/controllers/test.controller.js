@@ -165,7 +165,7 @@ exports.getUserMissionDetails = async function (req, res, next) {
           return {
             missionId: id,
             description: mission.description,
-            complted: testerMissionDetail.completed,
+            completed: testerMissionDetail.completed,
             duration: testerMissionDetail.duration,
             createdAt: testerMissionDetail.createdAt,
             completedAt: testerMissionDetail.completedAt,
