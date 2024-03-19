@@ -58,3 +58,35 @@ exports.getSingleMission = async function (req, res, next) {
     res.status(500).json({ error: "Failed to retrieve mission" });
   }
 };
+
+exports.putTesterMission = async function (req, res, next) {
+  const { missionid, testerid } = req.params;
+  const missionData = req.body;
+
+  try {
+    const mission = await Mission.findById(missionid);
+
+    if (!mission) {
+      return res.status(404).json({ error: "Mission Not Found" });
+    }
+
+    const index = mission.completedBy.findIndex(
+      (item) => item.tester.toString() === testerid,
+    );
+
+    if (index === -1) {
+      return res.status(404).json({ error: "Tester Not Found" });
+    }
+
+    mission.completedBy[index] = {
+      ...mission.completedBy[index].toObject(),
+      ...missionData,
+    };
+
+    await mission.save();
+
+    res.status(200).json(mission);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to Update Mission" });
+  }
+};
