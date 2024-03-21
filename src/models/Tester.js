@@ -25,7 +25,7 @@ const testerSchema = new mongoose.Schema({
       ref: "Mission",
     },
   ],
-  videoURL: {
+  s3Key: {
     type: String,
   },
   surveyResponse: {
