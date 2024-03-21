@@ -1,5 +1,9 @@
 /* eslint-disable consistent-return */
+const { GetObjectCommand } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+
 const bcrypt = require("bcrypt");
+const s3Client = require("../aws/s3Client");
 
 const User = require("../models/User");
 const Test = require("../models/Test");
@@ -124,11 +128,27 @@ exports.getTest = async function (req, res, next) {
       _id: { $in: test.testers },
     }).lean();
 
-    const testerData = testers.map((tester) => ({
-      testerEmail: tester.testerEmail,
-      testerId: tester._id,
-      testerVideo: tester.videoURL,
-    }));
+    const testerDataPromises = testers.map(async (tester) => {
+      let testerVideoUrl = null;
+
+      if (tester.s3Key) {
+        const command = new GetObjectCommand({
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: tester.s3Key,
+        });
+        testerVideoUrl = await getSignedUrl(s3Client, command, {
+          expiresIn: 60000,
+        });
+      }
+
+      return {
+        testerEmail: tester.testerEmail,
+        testerId: tester._id,
+        testerVideo: testerVideoUrl,
+      };
+    });
+
+    const testerData = await Promise.all(testerDataPromises);
 
     const missions = await Mission.find({
       _id: { $in: test.missions },
