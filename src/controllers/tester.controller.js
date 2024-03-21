@@ -1,5 +1,6 @@
 /* eslint-disable consistent-return */
 const Mission = require("../models/Mission");
+const Survey = require("../models/Survey");
 const Test = require("../models/Test");
 const Tester = require("../models/Tester");
 
@@ -88,5 +89,33 @@ exports.putTesterMission = async function (req, res, next) {
     res.status(200).json(mission);
   } catch (error) {
     res.status(500).json({ error: "Failed to Update Mission" });
+  }
+};
+
+exports.createSurvey = async function (req, res, next) {
+  const testerId = req.params.testerid;
+  const { susScore, npsScore } = req.body;
+
+  try {
+    const test = await Test.findOne({ testers: testerId });
+
+    if (!test) {
+      return res
+        .status(404)
+        .json({ error: "Test not found for given testerId" });
+    }
+
+    const newSurvey = new Survey({
+      tester: testerId,
+      test: test._id,
+      SUS: susScore,
+      NPS: npsScore,
+    });
+
+    await newSurvey.save();
+
+    res.status(201).json(newSurvey);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to Create Survey" });
   }
 };

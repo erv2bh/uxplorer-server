@@ -19,4 +19,6 @@ router.post(
   videoController.getScreenRecord,
 );
 
+router.post("/:testerid/surveys", testerController.createSurvey);
+
 module.exports = router;

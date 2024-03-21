@@ -11,10 +11,12 @@ const surveySchema = new mongoose.Schema({
     ref: "Test",
     required: true,
   },
-  SUS: {
-    type: Number,
-    required: true,
-  },
+  SUS: [
+    {
+      type: Number,
+      required: true,
+    },
+  ],
   NPS: {
     type: Number,
     required: true,
