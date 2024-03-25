@@ -5,13 +5,21 @@ const Test = require("../models/Test");
 const Tester = require("../models/Tester");
 
 exports.getTestUrl = async function (req, res, next) {
+  const today = new Date();
+
   try {
     const testerId = req.params.testerid;
 
-    const test = await Test.findOne({ testers: testerId }).select("testUrl");
+    const test = await Test.findOne({ testers: testerId }).select(
+      "testUrl deadline",
+    );
 
     if (!test) {
       return res.status(404).json({ error: "TestURL Not Found" });
+    }
+
+    if (test.deadline < today) {
+      return res.status(400).json({ error: "Test Deadline has passed" });
     }
 
     const { testUrl } = test;
