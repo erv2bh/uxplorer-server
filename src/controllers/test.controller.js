@@ -25,6 +25,12 @@ exports.createTest = async function (req, res, next) {
     const userId = req.params.userid;
     const saltRounds = parseInt(process.env.SALT_ROUNDS, 10);
 
+    const existingTest = await Test.findOne({ title: testName });
+
+    if (existingTest) {
+      return res.status(400).json({ error: "Same Title already existed" });
+    }
+
     const newTest = await Test.create({
       owner: userId,
       title: testName,
@@ -128,6 +134,11 @@ exports.getTest = async function (req, res, next) {
       _id: { $in: test.testers },
     }).lean();
 
+    const loggedInTesters = await Tester.find({
+      _id: { $in: test.testers },
+      isLoggedIn: true,
+    }).lean();
+
     const testerDataPromises = testers.map(async (tester) => {
       let testerVideoUrl = null;
 
@@ -154,7 +165,22 @@ exports.getTest = async function (req, res, next) {
       _id: { $in: test.missions },
     }).lean();
 
-    res.status(200).json({ test, testerData, missions });
+    const completedMission = await Mission.aggregate([
+      { $match: { _id: { $in: test.missions } } },
+      { $unwind: "$completedBy" },
+      {
+        $match: {
+          "completedBy.tester": {
+            $in: loggedInTesters.map((tester) => tester._id),
+          },
+          "completedBy.completed": true,
+        },
+      },
+    ]);
+
+    res
+      .status(200)
+      .json({ test, testerData, missions, completedMission, loggedInTesters });
   } catch (error) {
     res.status(500).json({ error: "Failed to retrieve test" });
   }
