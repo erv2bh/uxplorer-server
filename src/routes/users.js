@@ -23,4 +23,6 @@ router.get(
   surveyController.getSurveyResults,
 );
 
+router.delete("/:userid/tests/:testid", verifyToken, testController.deleteTest);
+
 module.exports = router;

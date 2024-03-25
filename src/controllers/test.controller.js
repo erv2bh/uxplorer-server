@@ -10,6 +10,7 @@ const Test = require("../models/Test");
 const Tester = require("../models/Tester");
 const Mission = require("../models/Mission");
 const sendEmail = require("../service/mailer");
+const Survey = require("../models/Survey");
 
 exports.createTest = async function (req, res, next) {
   try {
@@ -234,5 +235,44 @@ exports.getUserMissionDetails = async function (req, res, next) {
     res.status(200).json(filteredMissionDetails);
   } catch (error) {
     res.status(500).json({ error: "Failed to retrieve user's mission" });
+  }
+};
+
+exports.deleteTest = async function (req, res, next) {
+  const testId = req.params.testid;
+
+  try {
+    const test = await Test.findById(testId)
+      .populate("missions")
+      .populate("testers");
+
+    if (test) {
+      await Promise.all(
+        test.missions.map(async (mission) => {
+          await Mission.findByIdAndDelete(mission._id);
+        }),
+      );
+
+      await Promise.all(
+        test.testers.map(async (tester) => {
+          await Tester.findByIdAndDelete(tester._id);
+        }),
+      );
+    }
+
+    await Survey.deleteMany({ test: testId });
+
+    const user = await User.findOne({ createdTests: testId });
+
+    if (user) {
+      user.createdTests.pull(testId);
+      await user.save();
+    }
+
+    await Test.findByIdAndDelete(testId);
+
+    res.status(200).json({ message: "Test Deleted Successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to Delete Test" });
   }
 };
