@@ -6,6 +6,7 @@ const jwt = require("../service/jwtUtils");
 const errors = require("../constants/error");
 const CONFIG = require("../constants/config");
 const Tester = require("../models/Tester");
+const Test = require("../models/Test");
 
 exports.google = async function (req, res, next) {
   let member;
@@ -44,16 +45,29 @@ exports.google = async function (req, res, next) {
 };
 
 exports.login = async function (req, res, next) {
+  const today = new Date();
+
   try {
     const { testerId, testerPassword } = req.body;
 
     const testerData = await Tester.findOne({
       testerId,
-      isLoggedIn: false,
     });
+
+    const testData = await Test.findOne({
+      testers: testerData._id,
+    }).exec();
 
     if (!testerData) {
       return res.status(401).json({ message: "Authentication Failed" });
+    }
+
+    if (testerData.isLoggedIn === true) {
+      return res.status(403).json({ message: "Already participated Tester" });
+    }
+
+    if (testData.deadline < today) {
+      return res.status(400).json({ message: "Test Deadline has passed" });
     }
 
     const passwordMatch = await bcrypt.compare(
