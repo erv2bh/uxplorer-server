@@ -35,6 +35,7 @@ exports.google = async function (req, res, next) {
         maxAge: CONFIG.HOUR_IN_MS,
         httpOnly: true,
         secure: true,
+        sameSite: "None",
       })
       .json({ success: true, userInfo });
   } catch (error) {
