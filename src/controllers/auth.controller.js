@@ -34,6 +34,7 @@ exports.google = async function (req, res, next) {
       .cookie("AccessToken", accessToken, {
         maxAge: CONFIG.HOUR_IN_MS,
         httpOnly: true,
+        secure: true,
       })
       .json({ success: true, userInfo });
   } catch (error) {

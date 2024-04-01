@@ -37,6 +37,7 @@ exports.verifyToken = async function (req, res, next) {
         res.status(201).cookie("AccessToken", newAccessToken, {
           maxAge: CONFIG.HOUR_IN_MS,
           httpOnly: true,
+          secure: true,
         });
 
         return next();
